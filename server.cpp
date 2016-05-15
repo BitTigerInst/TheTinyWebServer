@@ -1,3 +1,4 @@
+//The Tiny Web Server
 #include "commom.h"
 int k=0;
 #define MAX_SIZE  10
@@ -16,7 +17,7 @@ void server::start()
 	bind(listensocket,(struct sockaddr*)&ser_addr,sizeof(ser_addr));
 	listen(listensocket,MAX_SIZE);
 	epfd = epoll_create(MAX_SIZE);
-    
+
     if(epfd < 0) {
         perror("epfd error");
         exit(-1);
@@ -35,10 +36,10 @@ void server::addfd(int epollfd, int fd)
 
     fcntl(fd, F_SETFL, fcntl(fd, F_GETFD, 0)| O_NONBLOCK);
     printf("fd added to epoll!\n\n");
-}	
+}
 void server::process()
 {
-	 static struct epoll_event events[MAX_SIZE]; 
+	 static struct epoll_event events[MAX_SIZE];
 	while(1)
     {
         //epoll_events_count表示就绪事件的数目
@@ -64,9 +65,9 @@ void server::process()
 				addfd(epfd, clientfd);
 				client.push_back(clientfd);
             }
-			else 
+			else
 			{
-				    readClient(sockfd); 
+				    readClient(sockfd);
 
 			}
 
@@ -76,8 +77,8 @@ void server::process()
 server::~server()
 {
 	  cout<<"quit"<<endl;
-	  
-	
+
+
 }
 int server::analysereq(httprequest* k)
 {
@@ -87,16 +88,16 @@ int server::analysereq(httprequest* k)
 		cout<<"bingo"<<endl;
 		return 0;
 	}
-	
+
 }
 void server::readClient(int fd)
 {
 	// data_len为0时有可能是客户端要断开连接，先设置 data_len 为以太网默认最大的MTU值
     int	data_len = 1400;
     char* pData = new char[data_len];
-    
+
     // 读取数据到pData
-    int flags = 0; 
+    int flags = 0;
     ssize_t lenRecv = recv(fd, pData, data_len, flags);
     cout<<pData<<endl;
     // 判断客户端状态
@@ -115,7 +116,7 @@ void server::readClient(int fd)
     }
 
 	delete [] pData;
-	
+
 }
 int main(int argc,char*argv[])
 {
@@ -123,6 +124,6 @@ int main(int argc,char*argv[])
 	server a;
 	a.start();
 	a.process();
- 
+
 	return 0;
 }
