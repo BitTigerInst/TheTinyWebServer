@@ -1,10 +1,11 @@
-//The Tiny Web Server
 #include "commom.h"
-int k=0;
+//int k=0;
 #define MAX_SIZE  10
 #include "httprequest.h"
 #include "server.h"
 #include "httpmessage.h"
+#include "httpresourcehost.h"
+#include "httpresource.h"
 /*server::server() {
       cout<<"welcome"<<endl;
 }*/
@@ -17,7 +18,7 @@ void server::start()
 	bind(listensocket,(struct sockaddr*)&ser_addr,sizeof(ser_addr));
 	listen(listensocket,MAX_SIZE);
 	epfd = epoll_create(MAX_SIZE);
-
+    
     if(epfd < 0) {
         perror("epfd error");
         exit(-1);
@@ -36,10 +37,10 @@ void server::addfd(int epollfd, int fd)
 
     fcntl(fd, F_SETFL, fcntl(fd, F_GETFD, 0)| O_NONBLOCK);
     printf("fd added to epoll!\n\n");
-}
+}	
 void server::process()
 {
-	 static struct epoll_event events[MAX_SIZE];
+	 static struct epoll_event events[MAX_SIZE]; 
 	while(1)
     {
         //epoll_events_count表示就绪事件的数目
@@ -65,9 +66,9 @@ void server::process()
 				addfd(epfd, clientfd);
 				client.push_back(clientfd);
             }
-			else
+			else 
 			{
-				    readClient(sockfd);
+				    readClient(sockfd); 
 
 			}
 
@@ -77,8 +78,8 @@ void server::process()
 server::~server()
 {
 	  cout<<"quit"<<endl;
-
-
+	  
+	
 }
 int server::analysereq(httprequest* k)
 {
@@ -86,18 +87,42 @@ int server::analysereq(httprequest* k)
 	{
 
 		cout<<"bingo"<<endl;
-		return 0;
+	}
+	if(k->support_opt()>0)
+	{
+		cout<<"support"<<endl;
+		string uri_2=k->geturi();
+		string ver_5=k->getversion();
+		string mess_2=k->getheadmessage();
+		httpresourcehost* vhost=new httpresourcehost(uri_2,mess_2,ver_5);
+		string ext_1=vhost->getextension();//获取请求文件的扩展名
+		string mimestring=vhost->findMimeType(ext_1);//获取mime类型
+		
+		string responmessage=vhost->openfile(mimestring,uri_2);//获取响应信息
+		int fd_2=k->getclient();
+		int ret=sendresponse(fd_2,responmessage);
+		delete vhost;
+		if(ret>0)
+		{
+			cout<<"That is successful"<<endl<<"The response is"<<responmessage<<endl;
+			
+		}
+		else
+		{
+			cout<<"That is an error"<<endl;
+		}
 	}
 
+	
 }
 void server::readClient(int fd)
 {
 	// data_len为0时有可能是客户端要断开连接，先设置 data_len 为以太网默认最大的MTU值
     int	data_len = 1400;
     char* pData = new char[data_len];
-
+    
     // 读取数据到pData
-    int flags = 0;
+    int flags = 0; 
     ssize_t lenRecv = recv(fd, pData, data_len, flags);
     cout<<pData<<endl;
     // 判断客户端状态
@@ -110,13 +135,26 @@ void server::readClient(int fd)
     } else {
 		cout<<pData<<endl;
         // 接收数据，创建HTTPRequest对象，并调用analysereq处理
-		httprequest* req=new httprequest(pData);//通过请求类来进行http解释
+		httprequest* req=new httprequest(pData,fd);//通过请求类来进行http解释
 	    int a=analysereq(req);
 		delete req;
     }
 
 	delete [] pData;
-
+	
+}
+int server::sendresponse(int fd,string responsemessage)
+{
+	const char* resmess=responsemessage.c_str();
+	if(int b=write(fd,resmess,responsemessage.length())>0)
+	{
+		cout<<"The length is"<<b<<endl;
+	}
+	else
+	{
+		cout<<"That is an error"<<endl;
+		
+	}
 }
 int main(int argc,char*argv[])
 {
@@ -124,6 +162,6 @@ int main(int argc,char*argv[])
 	server a;
 	a.start();
 	a.process();
-
+ 
 	return 0;
 }

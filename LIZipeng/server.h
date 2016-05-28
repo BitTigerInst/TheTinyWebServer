@@ -13,6 +13,8 @@ class server
 	   void addfd(int epollfd, int fd);//将连接文件描述符注册到epoll
 	   int analysereq(httprequest* k);//分析请求
 	   void readClient(int fd); 
+	   string conformity();//整合相应信息
+	   int sendresponse(int fd,string responsemessage);//发送相应信息到客户端
 	private:
 	   int listensocket;
 	   struct sockaddr_in ser_addr;

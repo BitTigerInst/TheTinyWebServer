@@ -20,7 +20,13 @@
 using namespace std;
 #include <sstream>
 
-
+#include "time.h"
+#include "sys/time.h"
+#include <unordered_map>
+#include <iterator>
+//#include "MimeTypes.inc"
+#include <fstream>
+#include <utility>
 
 
 #endif
